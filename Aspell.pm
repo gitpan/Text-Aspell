@@ -7,7 +7,7 @@ require DynaLoader;
 use vars qw/  @ISA $VERSION /;
 @ISA = 'DynaLoader';
 
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 bootstrap Text::Aspell $VERSION;
 
@@ -98,7 +98,7 @@ spell checker.
 This module is to meet the need of looking up many
 words, one at a time, in a single session.
 
-This is a perl xs interface which should provide good performance compared
+This is a Perl xs interface which should provide good performance compared
 to forking the aspell program for every word.
 
 For example, a tiny run of about 400 word lookups resulted in:
@@ -106,8 +106,27 @@ For example, a tiny run of about 400 word lookups resulted in:
     aspell-fast: 18.44 seconds
     pspell-fast:  0.63 seconds
 
-Where aspell-fast was forking (about 4 words perl fork) and pspell-fast was using this
+Where aspell-fast was forking (about 4 words per fork) and pspell-fast was using this
 module[1] ("fast" refers to the spelling mode used).
+
+The GNU C interface is described at:
+
+  http://savannah.gnu.org/download/aspell/manual/user/6_Writing.html
+
+It's worth looking over the way config and speller (manager) objects are created when using
+the Aspell C API as some of that is hidden in the Text::Aspell module.  In this discussion
+the term "speller object" means the internal Aspell object, not the value returned from
+Text::Aspell->new.
+
+For example, with Text::Aspell you do not have to explicitly create a speller object.
+The speller (manager) object is created automatically the first time you call suggest() or 
+check().
+
+Note also that once the speller object is created some (all?) config options cannot be 
+changed.  For example, setting configuration options such as "lang" are what determine what
+dictionary Aspell will use.  Once the speller object is created that dictionary will be 
+used.  I.e. setting "lang" after the speller object is created will have no effect.
+
 
 [1] Actually, running Text::Pspell which was the predecessor to this module.
 
@@ -131,11 +150,15 @@ Creates a new speller object.  New does not take any parameters (future version
 may allow options set by passing in a hash reference of options and value pairs).
 Returns C<undef> if the object could not be created, which is unlikely.
 
+Internally, new() creates an object to store Aspell structures (AspellConfig,
+AspellSpeller, and a space for an error string and then calls new_aspell_config();
+
 =item $speller->set_option($option_name, $value);
 
 Sets the configuration option C<$option_name> to the value of C<$value>.
 Returns C<undef> on error, and the error message can be printed with $speller->errstr.
-You generally set configuration options before calling the $speller->create_speller
+
+You should set configuration options before calling the $speller->create_speller
 method.  See the GNU Aspell documentation for the available configuration settings
 and how (and when) they may be used.
 
@@ -215,7 +238,7 @@ This method is normally not called by your program.
 It is called automatically the first time $speller->check() or
 $speller->suggest() is called to create a spelling "speller".
 
-You might want to call this when you program first starts up to make the first
+You might want to call this when your program first starts up to make the first
 access a bit faster, or if you need to read back configuration settings before
 looking up words.
 

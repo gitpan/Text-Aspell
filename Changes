@@ -2,6 +2,27 @@ Revision history for Perl extension Text::Aspell.
 
 ## $Id: Changes,v 1.4 2002/08/29 20:28:00 moseley Exp $ ##
 
+0.03  Sun Aug  3 00:45:32 UTC 2003
+
+      - Fixed a bug reported in Debian bug 203467
+        An invalid config setting (such as Lang = "xx") was
+        causing a segfault.
+        Was freeing the config option between creating the speller
+        and checking for errors.  The free was clearing the error status.
+
+      - Fixed Debian bug 203516
+        Was not correctly extending arg stack when pusing suggesions onto
+        an array.
+
+      - Closed Debian bug 203517
+        User was trying to modify the config settings (specifically the
+        "lang" setting) after creating a speller object.  That doesn't
+        work because creating a speller object is what maps the config
+        options to a given dictionary file.
+        Documentation updated to clear up this point.
+
+
+
 0.02  Sat Aug 31 14:58:31 UTC 2002
 
       - Added new method:

@@ -22,14 +22,19 @@ int _create_speller(Aspell_object *self)
     AspellCanHaveError *ret;
 
     ret = new_aspell_speller(self->config);
-    delete_aspell_config(self->config);
-    self->config = NULL;
+
 
     if ( (self->errnum = aspell_error_number(ret) ) )
     {
         strncpy(self->lastError, (char*) aspell_error_message(ret), MAX_ERRSTR_LEN);
         return 0;
     }
+
+
+    /* The config is no longer needed (check for errors here?) */
+    delete_aspell_config(self->config);
+    self->config = NULL;
+
 
     self->speller = to_aspell_speller(ret);
     self->config  = aspell_speller_config(self->speller);
@@ -226,7 +231,7 @@ check(self,word)
     CODE:
         self->lastError[0] = '\0';
         self->errnum = 0;
-        
+
         if (!self->speller && !_create_speller(self) )
             XSRETURN_UNDEF;
 
@@ -251,6 +256,7 @@ suggest(self, word)
     PPCODE:
         self->lastError[0] = '\0';
         self->errnum = 0;
+
         
         if (!self->speller && !_create_speller(self) )
             XSRETURN_UNDEF;
@@ -262,11 +268,14 @@ suggest(self, word)
             strncpy(self->lastError, (char*) aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
             XSRETURN_UNDEF;
         }
+
+
   
         els = aspell_word_list_elements(wl);
 
+
         while ( (suggestion = aspell_string_enumeration_next(els)) )
-            PUSHs(sv_2mortal(newSVpv( (char *)suggestion ,0 )));
+            XPUSHs(sv_2mortal(newSVpv( (char *)suggestion ,0 )));
 
         delete_aspell_string_enumeration(els);
 
