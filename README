@@ -1,0 +1,108 @@
+Text::Aspell - Perl interface to the Aspell library
+
+$Id: README,v 1.5 2002/08/26 05:46:20 moseley Exp $
+
+DESCRIPTION
+
+Text::Aspell is an interface to the GNU Aspell library.
+GNU Aspell is a Free and Open Source spell checker.
+
+This module is a replacement for the Text::Pspell module to work with
+the new GNU Aspell (the replacement for the previous version of Aspell/Pspell).
+
+This module has been built and passed all tests on the following platforms:
+    
+    perl 5.6.1 on Linux, gcc version 2.95.3 20010315 (release)
+    perl 5.8.0 on Linux gcc version 2.95.4 20011002 (Debian prerelease)
+    perl 5.00503 on FreeBSD 4.6-STABLE gcc version 2.95.4 20020320 [FreeBSD]
+
+    (these require at least aspell-0.50.1)
+    perl 5.00503 on Solaris 5.8 sparc SUNW,Ultra-60 gcc version 2.95.2 19991024 (release)
+    perl 5.00503 on Solaris 2.6, gcc version 2.95.1 19990816 (release)
+
+
+INSTALLATION
+
+1) Install Aspell and a Dictionary
+
+    Make sure you have a current version of GNU Aspell installed.
+    You must install both the Aspell program and a dictionary.
+    They are distributed as separate packages.
+    
+    Aspell and the dictionary files can be downloaded from:
+
+    http://aspell.net/
+
+    Note: The Text::Aspell module's test suite ("make test") requires
+    that the English dictionary is installed.
+
+    This module has been tested with the following version of Aspell
+    and dictionary:
+    
+        aspell-0.50       Aspell program (ftp://ftp.gnu.org/gnu/aspell/aspell-0.50.tar.gz)
+        aspell-en-0.50-1  English Dictionary (ftp://ftp.gnu.org/gnu/aspell/aspell-en-0.50-1.tar.bz2)
+
+    NOTE: URLs for reference only -- use the most current version of each available.
+
+    Aspell and the dictionary packages contain README files that include
+    installation instructions.  Here's a basic overview:
+
+    Aspell must be installed first, then install the dictionary file and finally
+    install the Text::Aspell module.
+
+    Aspell installation example:
+    
+    $ wget ftp://ftp.gnu.org/gnu/aspell/aspell-0.50.tar.gz
+    $ tar zxof aspell-0.50.tar.gz           # or gzip -dc aspell-0.50.tar.gz | tar xof -
+    $ cd aspell-0.50
+    $ ./configure ( ./configure --help for options )
+    $ make
+    # make install
+
+    If you used a --prefix option to install Aspell in a non-standard location you
+    will need to adjust your path to include $PREFIX/bin.  The configure script
+    for the dictionary needs to find programs installed in the previous step.
+
+    Dictionary installation example:
+
+    $ wget ftp://ftp.gnu.org/gnu/aspell/aspell-en-0.50-1.tar.bz2
+    $ tar jxof aspell-en-0.50-1.tar.bz2     # or bunzip2 < aspell-en-0.50-1.tar.bz2 | tar xof -
+    $ cd aspell-en-0.50-1
+    $ ./configure
+    $ make
+    # make install
+
+    At this point you should be able to run Aspell in interactive mode.
+    For example:
+
+    $ aspell -a
+    @(#) International Ispell Version 3.1.20 (but really Aspell 0.50)
+    speler
+    & speler 30 0: speller, speer, spiller, spoiler, ...
+
+
+2) Build and install this Text::Aspell module.
+
+    $ perl Makefile.PL
+    $ make
+    $ make test
+    # make install
+
+
+    If you installed Apsell in a non-standard location (for example, if
+    you don't have root access) then you will need to tell Makefile.PL where to
+    find the library.  
+
+    For example, if Apsell was installed in $HOME/local (--prefix=$HOME/local)
+    and the perl module should be installed in the perl library $HOME/perl_lib:
+
+    $ perl Makefile.PL PREFIX=$HOME/perl_lib \
+    CCFLAGS=-I$HOME/local/include \
+    LIBS="-L$HOME/local/lib -laspell"
+
+    $ LD_RUN_PATH=$HOME/local/lib make
+    $ make test
+    $ make install
+    
+
+

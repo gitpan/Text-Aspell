@@ -1,0 +1,8 @@
+Changes
+MANIFEST
+README
+Makefile.PL
+Aspell.pm
+Aspell.xs
+typemap
+t/test.t

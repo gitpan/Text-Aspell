@@ -1,0 +1,17 @@
+Revision history for Perl extension Text::Aspell.
+
+## $Id: Changes,v 1.3 2002/08/26 02:40:25 moseley Exp $ ##
+
+
+0.01  Thu Aug 29 19:49:51 UTC 2002
+
+      - Updated and renamed from Text::Pspell to use GNU Aspell 0.50.
+        Update to GNU Aspell provided by T.J. Mather, Aug 24, 2002.
+
+      - Updated config options displayed in print_config() method.
+
+      - Added list_dictionaries() method to list available dictionaries
+        and added test.
+
+
+
