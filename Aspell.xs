@@ -2,7 +2,7 @@
 #include "perl.h"
 #include "XSUB.h"
 
-/* $Id: Aspell.xs,v 1.4 2002/08/27 06:22:51 moseley Exp $ */
+/* $Id: Aspell.xs,v 1.5 2002/08/29 20:28:00 moseley Exp $ */
 
 #include <aspell.h>
 
@@ -16,64 +16,6 @@ typedef struct {
     int                 errnum;
 } Aspell_object;
 
-// Available options -- from section 4.2 of Aspell 0.50.1
-
-char *Option_List[] = {
-    // Dictionary Options
-    "master",           // (string) base name of the dictionary to use. If this option is specifed than Aspell with either use this dictionary or die.
-    "dict-dir",         // (dir) location of the main word list
-    "lang",             // (string) language to use
-    "size",             // (string) the preferred size of the word list
-    "jargon",           // (string) an extra information to distinguish two different words lists that have the same lang and size.
-    "word-list-path",   // (list) search path for word list information files
-    "module-search-order", // (list) list of available modules, modules that come first on this list have a higher priority. Currently there is only one speller module.
-    "personal",         // (file) personal word list file name
-    "repl",             // (file) replacements list file name
-    "extra-dicts",      // (list) extra dictionaries to use.
-    // strip-accents
-
-    // Checker Options
-    "ignore",           // (integer) ignore words <= n chars
-    "ignore-case",      // (boolean) ignore case when checking words
-    "ignore-accents",   // (boolean) ignore accents when checking words
-    "ignore-repl",      // (boolean) ignore commands to store replacement pairs
-    "save-repl",        // (boolean) save the replacement word list on save allkeyboard (file) the base name of the keyboard definition file to use
-    "sug-mode",         // (mode) suggestion mode = ultra | fast | normal | bad-spellers
-
-    // Filters
-    "filter",           // (list) add or removes a filter
-    "mode",             // (string) sets the filter mode. Mode is one if none, url, email, sgml, or tex. (The short cut options '-e' may be used for email, '-H' for Html/Sgml, or '-t' for Tex)
-    "encoding",         // (string) The encoding the input text is in. Valid values are ``utf-8'', ``iso8859-*'', ``koi8-r'', ``viscii'', ``cp1252'', ``machine unsigned 16'', ``machine unsigned 32''. However, the aspell utility will currently only function correctly with 8-bit encodings. I hope to provide utf-8 support in the future. The two ``machine unsigned'' encodings are entended to be used by other programs using the Aspell librarary and it is unlikly the Aspell utility will ever support these encodings.
-    "email-quote",      // (list) email quote characters
-    "email-margin",     // (integer) num chars that can appear before the quote char
-    "sgml-check",       // (list) sgml attributes to always check.
-    "sgml-extension",   // (list) sgml file extensions.
-    "tex-command",      // (list) TEX commands
-    "tex-check-comments", // (boolean) check TEX comments    
-
-    // Run-together Word Options
-    "run-together",     // (boolean) consider run-together words legal
-    "run-together-limit", // (integer) maximum numbers that can be strung together
-    "run-together-min", // (integer) minimal length of interior words
-
-    // Misc Options
-    "conf",             // (file) main configuration file
-    "conf-dir",         // (dir) location of main configuration file
-    "data-dir",         // (dir) location of language data files
-    "local-data-dir",   // (dir) alternative location of language data files. This directory is searched before data-dir. It defaults to the same directory the actual main word list is in (which is not necessarily dict-dir).
-    "home-dir",         // (dir) location for personal files
-    "per-conf",         // (file) personal configuration file
-    "prefix",           // (dir) prefix directory
-    "set-prefix",       // (boolean) set the prefix based on executable location (only works on Win32 and when compiled with --enable-win32-relocatable)
-
-    // Aspell Utility Options
-    // backup
-    // time
-    "reverse",          // (boolean) reverse the order of the suggestions list.
-    "keymapping",       // (string) the keymapping to use. Either aspell for the default mapping or ispell to use the same mapping that the ispell utility uses.    
-
-    0          
-};
 
 int _create_speller(Aspell_object *self)
 {
@@ -150,20 +92,16 @@ int
 print_config(self)
     Aspell_object *self
     PREINIT:
-        char ** opt;
+        AspellKeyInfoEnumeration * key_list;
+        const AspellKeyInfo * entry;
     CODE:
-        self->lastError[0] = '\0';
+        key_list = aspell_config_possible_elements( self->config, 0 );
 
-        /*
-        if (!self->speller)
-        {
-            strcpy(self->lastError, "Can't list config, no speller available");
-            XSRETURN_UNDEF;
-        }
-        */
+        while ( (entry = aspell_key_info_enumeration_next(key_list) ) )
+            PerlIO_printf(PerlIO_stdout(),"%20s:  %s\n", entry->name, aspell_config_retrieve(self->config, entry->name) );
 
-        for (opt=Option_List; *opt; opt++) 
-            PerlIO_printf(PerlIO_stdout(),"%20s:  %s\n", *opt, aspell_config_retrieve(self->config, *opt) );
+        delete_aspell_key_info_enumeration(key_list);
+            
 
         RETVAL = 1;
 
@@ -229,6 +167,39 @@ get_option(self, val)
 
     OUTPUT:
         RETVAL
+
+int
+get_option_as_list(self, val)
+    Aspell_object *self
+    char * val
+
+    PREINIT:
+        AspellStringList * lst = new_aspell_string_list();
+	    AspellMutableContainer * lst0  = aspell_string_list_to_mutable_container(lst);
+        AspellStringEnumeration * els;
+        const char *option_value;
+
+    PPCODE:
+        if (!self->config )
+            XSRETURN_UNDEF;
+
+        aspell_config_retrieve_list(self->config, val, lst0);
+
+        if ( (self->errnum = aspell_config_error_number( (const AspellConfig *)self->config) ) )
+        {
+            strncpy(self->lastError, (char*) aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
+            delete_aspell_string_list(lst);
+            XSRETURN_UNDEF;
+        }
+
+        els = aspell_string_list_elements(lst);
+
+        while ( (option_value = aspell_string_enumeration_next(els)) != 0)
+            PUSHs(sv_2mortal(newSVpv( option_value ,0 )));
+        
+
+        delete_aspell_string_enumeration(els);
+        delete_aspell_string_list(lst);
 
 
 char *
@@ -447,4 +418,84 @@ list_dictionaries(self)
         }
 
         delete_aspell_dict_info_enumeration(dels);
+
+
+int
+dictionary_info(self)
+        Aspell_object *self;
+    PREINIT:
+        AspellDictInfoList *dlist;
+        AspellDictInfoEnumeration *dels;
+        const AspellDictInfo *entry;
+    PPCODE:
+
+        if (!self->config )  /* type map should catch this error, I'd think */
+            XSRETURN_UNDEF;
+
+
+        dlist = get_aspell_dict_info_list(self->config);
+        dels = aspell_dict_info_list_elements(dlist);
+
+        while ( (entry = aspell_dict_info_enumeration_next(dels)) != 0)
+        {
+            HV * dict_entry = newHV();
+
+            if ( entry->name[0] )
+                hv_store(dict_entry, "name",  4, newSVpv(entry->name,0),0);
+
+            if ( entry->jargon[0] )
+                hv_store(dict_entry, "jargon",6, newSVpv(entry->jargon,0),0);
+
+            if ( entry->code[0] )
+                hv_store(dict_entry, "code",  4, newSVpv(entry->code,0),0);
+
+            if ( entry->code )
+                hv_store(dict_entry, "size",  4, newSViv(entry->size),0);
+
+            if ( entry->module->name[0] )
+                hv_store(dict_entry, "module",6, newSVpv(entry->module->name,0),0);
+
+            XPUSHs(sv_2mortal(newRV_noinc((SV*)dict_entry)));
+
+        }
+        
+        delete_aspell_dict_info_enumeration(dels);
+
+
+SV *
+fetch_option_keys(self)
+        Aspell_object *self;
+
+    PREINIT:
+        AspellKeyInfoEnumeration * key_list;
+        const AspellKeyInfo * entry;
+        HV * option_hash;
+
+    CODE:
+        key_list = aspell_config_possible_elements( self->config, 0 );
+
+        option_hash = newHV();
+
+        while ( (entry = aspell_key_info_enumeration_next(key_list) ) )
+        {
+            HV * KeyInfo = newHV();
+
+            hv_store(KeyInfo, "type",  4, newSViv((int)entry->type),0);
+
+            if ( entry->def && entry->def[0] )
+                hv_store(KeyInfo, "default", 7, newSVpv(entry->def,0),0);
+
+            if ( entry->desc && entry->desc[0] )
+                hv_store(KeyInfo, "desc",4, newSVpv(entry->desc,0),0);
+
+            hv_store(option_hash, entry->name, strlen(entry->name), newRV_noinc((SV *)KeyInfo),0);
+        }
+        
+        delete_aspell_key_info_enumeration(key_list);
+
+        RETVAL = newRV_noinc((SV *)option_hash);
+
+    OUTPUT:
+        RETVAL
+
 

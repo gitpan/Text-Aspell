@@ -1,11 +1,11 @@
 #!perl -w
 
-# $Id: test.t,v 1.4 2002/08/27 06:22:52 moseley Exp $
+# $Id: test.t,v 1.5 2002/08/29 20:28:01 moseley Exp $
 
 use strict;
 require Text::Aspell;
 
-my $lastcase = 18;
+my $lastcase = 21;
 print "1..$lastcase\n";
 
 ######################################################################
@@ -65,3 +65,19 @@ print '',(!grep { $_ eq 'testt' } @s_words)  ? "ok 17 @s_words\n" : "not ok 17 @
 my @dicts = $speller->list_dictionaries;
 print @dicts ? "ok 18 " . scalar @dicts . " dictionaries found\n" : "not ok 18\n";
 
+@dicts = $speller->dictionary_info;
+print @dicts ? "ok 19 " . scalar @dicts . " dictionaries found\n" : "not ok 19\n";
+
+
+my @list = $speller->get_option_as_list('sgml-extension');
+
+print @list > 1 ? "ok 20 [@list]\n" : "not ok 20 " . $speller->errstr . "\n";
+
+my $options = $speller->fetch_option_keys;
+
+my $keys_count = ref $options eq 'HASH' ? keys %$options : 0;
+
+use Data::Dumper;
+print Dumper $options if $keys_count;
+
+print $keys_count ? "ok 21 [$keys_count options]\n" : "not ok 21\n";

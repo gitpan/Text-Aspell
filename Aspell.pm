@@ -1,13 +1,13 @@
 package Text::Aspell;
 
-# $Id: Aspell.pm,v 1.5 2002/08/26 03:30:48 moseley Exp $
+# $Id: Aspell.pm,v 1.7 2002/08/29 20:28:00 moseley Exp $
 
 require DynaLoader;
 
 use vars qw/  @ISA $VERSION /;
 @ISA = 'DynaLoader';
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 bootstrap Text::Aspell $VERSION;
 
@@ -46,12 +46,26 @@ Text::Aspell - Perl interface to the GNU Aspell library
     my $language = $speller->get_option('lang');
     print $speller->errstr unless defined $language;
 
-    # dump config settings to STDOUT
+    # fetch a config item that is a list
+    my @sgml_extensions = $speller->get_option_as_list('sgml-extension');
+
+
+    # fetch the configuration keys and their default settings
+    my $options = $speller->fetch_option_keys;
+
+    # or dump config settings to STDOUT
     $speller->print_config || $speller->errstr;
 
+    
 
-    # What dictionaries are installed?
+
+    # What dictionaries are installed as simple strings
     my @dicts = $speller->list_dictionaries;
+
+    # or as an array of hashes
+    @dicts = $speller->dictionary_info;
+    print Data::Dumper::Dumper( \@dicts );
+
 
 
 Here's an example how to create and use your own word list
@@ -117,27 +131,50 @@ Creates a new speller object.  New does not take any parameters (future version
 may allow options set by passing in a hash reference of options and value pairs).
 Returns C<undef> if the object could not be created, which is unlikely.
 
-=item $speller->set_option($tag, $value);
+=item $speller->set_option($option_name, $value);
 
-Sets the configuration option C<$tag> to the value of C<$value>.
+Sets the configuration option C<$option_name> to the value of C<$value>.
 Returns C<undef> on error, and the error message can be printed with $speller->errstr.
 You generally set configuration options before calling the $speller->create_speller
 method.  See the GNU Aspell documentation for the available configuration settings
 and how (and when) they may be used.
 
-=item $speller->remove_option($tag);
+=item $speller->remove_option($option_name);
 
-Removes (sets to the default value) the configuration option specified by C<$tag>.
+Removes (sets to the default value) the configuration option specified by C<$option_name>.
 Returns C<undef> on error, and the error message can be printed with $speller->errstr.
 You may only set configuration options before calling the $speller->create_speller
 method.
 
-=item $speller->get_option($tag);
+=item $string = $speller->get_option($option_name);
 
-Returns the current setting for the given tag.
+Returns the current setting for the given configuration option.  The values are strings.
+For configuration options that are lists used the C<get_option_as_list()> method.
+
 Returns C<undef> on error, and the error message can be printed with $speller->errstr.
+
 Note that this may return different results depending on if it's called before or after
-$speller->create_speller is called.  
+$speller->create_speller is called.
+
+=item  @list = $speller->get_option_as_list($option_name);
+
+Returns an array of list items for the given option.  Use this method to fetch configuration
+values that are of type I<list>.
+
+Returns C<undef> on error, and the error message can be printed with $speller->errstr.
+
+Note that this may return different results depending on if it's called before or after
+$speller->create_speller is called.
+
+=item $options = $speller->fetch_option_keys;
+
+Returns a hash of hashes.  The keys are the possible configuration options
+and the values is a hash with keys of:
+
+    desc    : A short description of the option
+    default : The default value for this option
+    type    : The data type of option (see aspell.h)
+
 
 =item $speller->print_config;
 
@@ -150,14 +187,14 @@ $speller->create_speller is called.
 Returns the error string from the last error.  Check the previous call for an C<undef> return
 value before calling this method
 
-=item $speller->errnum;
+=item $errnum = $speller->errnum;
 
 Returns the error number from the last error.  Some errors may only set the
 error string ($speller->errstr) on errors, so it's best to check use the errstr method
 over this method.
 
 
-=item $speller->check($word);
+=item $found = $speller->check($word);
 
 Checks if a word is found in the dictionary.  Returns true if the word is found
 in the dictionary, false but defined if the word is not in the dictionary.
@@ -219,6 +256,23 @@ formatted as:
 Name and code will often be the same, but
 name is the complete name of the dictionary which can be used to directly
 select a dictionary, and code is the language/region code only.
+
+=item $array_ref = $speller->$speller->dictionary_info;
+
+Like the C<list_dictionaries()> method, this method returns an array of 
+hash references.  For example, an entry for a dictionary might have the
+following hash reference:
+
+    {
+        'module' => 'default',
+        'code' => 'en_US',
+        'size' => 60,
+        'jargon' => 'w-accents',
+        'name' => 'en_US-w-accents'
+    },
+
+Not all hash keys will be available for every dictionary
+(e.g. the dictionary may not have a "jargon" key).
 
 
 =back

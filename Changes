@@ -1,7 +1,23 @@
 Revision history for Perl extension Text::Aspell.
 
-## $Id: Changes,v 1.3 2002/08/26 02:40:25 moseley Exp $ ##
+## $Id: Changes,v 1.4 2002/08/29 20:28:00 moseley Exp $ ##
 
+0.02  Sat Aug 31 14:58:31 UTC 2002
+
+      - Added new method:
+         @dicts = $speller->dictionary_info;
+         returns hash ref instead of a : joined string
+
+      - Added new method:
+        @option_list = $speller->get_option_as_list( $option_name );
+        returns the option setting as a list (since some options are lists)
+
+      - Added new method:
+        $options = $speller->fetch_option_keys;
+        returns the available config options and their defaults
+
+      - Removed option_list array.
+      
 
 0.01  Thu Aug 29 19:49:51 UTC 2002
 
