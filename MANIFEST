@@ -6,3 +6,4 @@ Aspell.pm
 Aspell.xs
 typemap
 t/test.t
+META.yml                                 Module meta-data (added by MakeMaker)

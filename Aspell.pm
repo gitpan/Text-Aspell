@@ -7,7 +7,7 @@ require DynaLoader;
 use vars qw/  @ISA $VERSION /;
 @ISA = 'DynaLoader';
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 bootstrap Text::Aspell $VERSION;
 

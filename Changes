@@ -2,6 +2,9 @@ Revision history for Perl extension Text::Aspell.
 
 ## $Id: Changes,v 1.4 2002/08/29 20:28:00 moseley Exp $ ##
 
+0.04  Sat Nov  1 22:10:03 UTC 2003
+      - Updated README for Windows instructions
+
 0.03  Sun Aug  3 00:45:32 UTC 2003
 
       - Fixed a bug reported in Debian bug 203467

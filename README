@@ -1,7 +1,5 @@
 Text::Aspell - Perl interface to the Aspell library
 
-$Id: README,v 1.5 2002/08/26 05:46:20 moseley Exp $
-
 DESCRIPTION
 
 Text::Aspell is an interface to the GNU Aspell library.
@@ -20,8 +18,12 @@ This module has been built and passed all tests on the following platforms:
     perl 5.00503 on Solaris 5.8 sparc SUNW,Ultra-60 gcc version 2.95.2 19991024 (release)
     perl 5.00503 on Solaris 2.6, gcc version 2.95.1 19990816 (release)
 
+Please read SUPPORT below if you have trouble building Text::Aspell.
+
 
 INSTALLATION
+
+Windows users see below.
 
 1) Install Aspell and a Dictionary
 
@@ -104,5 +106,91 @@ INSTALLATION
     $ make test
     $ make install
     
+
+
+WINDOWS USERS
+
+Randy Kobes has provided a PPM and the following instructions for installing
+Text::Aspell on Windows.  Thanks very much Randy.
+
+For installing on Win32, first get and install the "Full installer"
+executable at
+
+   http://aspell.net/win32/
+
+this will install Aspell into a location such as C:\Program Files\Aspell. You
+will also need to fetch and install at least one of the precompiled
+dictionaries found on the same page. 
+
+Make sure that the path to the Aspell bin directory (e.g. C:\Program
+Files\Aspell\bin\) is in your PATH environment variable.  For help with
+setting your path see "set environment variables" in the Windows Help 
+Utility.  You may need to reboot or open a new shell window after setting
+your path.  The Aspell .dll file must be located in the PATH before using 
+Text::Aspell.
+
+Then, to install Text::Aspell, type at a DOS prompt (all on one line)
+
+   C:\> ppm install http://theoryx5.uwinnipeg.ca/ppms/Text-Aspell.ppd
+
+for an ActivePerl 8xx version, or
+
+   C:\> ppm install http://theoryx5.uwinnipeg.ca/ppmpackages/Text-Aspell.ppd
+
+for an ActivePerl 6xx version.
+
+If you wish to build Text::Aspell from source:
+
+If you want to build Text::Aspell yourself, you'll need a C compiler, which
+must be the same one that your Perl is built with (for ActivePerl, this means
+VC++ 6). Assuming you have that, in addition to the "Full installer" binary
+package at http://aspell.net/win32/, you'll also need to get and install the
+aspell-dev package (also located at http://aspell.net/win32/), which contains
+the necessary .lib and .h files needed to compile the Perl module.
+
+Like above, make sure the PATH environment variable points to the location of 
+the installed Aspell .dll file before building Text::Aspell.
+
+Installation then proceeds as described for the Unix version:
+
+   perl Makefile.PL
+   nmake
+   nmake test
+   nmake install
+
+with the additional requirement of passing to 'perl Makefile.PL' the
+necessary arguments (e.g. INC and LIBS) to specify the locations of the lib
+and header files, if these were installed in a non-standard location. Make
+sure that if a non-standard location was used that this is added to your PATH
+environment variable before running the tests.
+
+
+SUPPORT
+
+Before contacting me with problems building Text::Aspell please try and debug 
+as much as possible.
+
+For example, if "make test" fails, then run in verbose mode:
+
+   make test TEST_VERBOSE=1
+
+That may show at what test is failing.  It's easy to run the test
+script manually -- and you can even edit and add a few print statements to 
+aid in debugging.
+
+For example:
+
+   perl -Iblib/lib -Iblib/arch t/test.t | less
+
+Use of LD_RUN_PATH, CCFLAGS and LIBS as above may also help if the build 
+process fails.
+
+Remember that you must have the English dictionary installed for tests to 
+pass (sorry, have to check against some dictionary).  Also, you may need to 
+set your LANG variable to "en_US" so that the English dictionary is selected. 
+
+If all else fails, use the request tracker at:
+
+  http://rt.cpan.org/NoAuth/Bugs.html?Dist=Text-Aspell
 
 
