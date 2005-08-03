@@ -1,8 +1,41 @@
 Revision history for Perl extension Text::Aspell.
 
-## $Id: Changes,v 1.4 2002/08/29 20:28:00 moseley Exp $ ##
+0.05  Wed Jul 27 10:34:55 PDT 2005
+
+      - Removed a number of const * casts.  Also changed a few int returns to
+        void to prevent XS creating RETVAL when not needed -- clears up all
+        warnings when compiling the module with -Wall (on gcc 3.3.6).
+
+      - Fixed get_option_as_list() to fetch the error message from the config object
+        instead of the speller object.  Reported by Gary Setter.
+
+      - Made _create_speller() static - closes 8635
+        Thanks to Alexey Tourbin
+
+      - gt_option_as_list now checks for valid speller object
+        and generates internal message if not valid - closes 8633
+        Thanks to Alexey Tourbin
+
+      - replaced the config list test from 'sgml-extension' to 
+        'sug-split-char'.  smgl-extension seems to not be available
+        anymore as a number of people reported this test failing.
+
+      - Ignore the return value in store_replacement() -- seems the
+        return value cannot be trusted from aspell.
+
+      - Updated typemap to use INT2PTR to quiet the following:
+
+            cast to pointer from integer of different size
+
+      - Updated the README file to included suggestions for building on various
+        platforms.
+
+      - Moved to using Test::More.  Sorry if that causes you pain.  Just trying
+        to keep up with the times.
+
 
 0.04  Sat Nov  1 22:10:03 UTC 2003
+
       - Updated README for Windows instructions
 
 0.03  Sun Aug  3 00:45:32 UTC 2003
@@ -41,7 +74,7 @@ Revision history for Perl extension Text::Aspell.
         returns the available config options and their defaults
 
       - Removed option_list array.
-      
+
 
 0.01  Thu Aug 29 19:49:51 UTC 2002
 

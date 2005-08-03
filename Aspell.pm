@@ -7,7 +7,7 @@ require DynaLoader;
 use vars qw/  @ISA $VERSION /;
 @ISA = 'DynaLoader';
 
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 bootstrap Text::Aspell $VERSION;
 
@@ -56,7 +56,7 @@ Text::Aspell - Perl interface to the GNU Aspell library
     # or dump config settings to STDOUT
     $speller->print_config || $speller->errstr;
 
-    
+
 
 
     # What dictionaries are installed as simple strings
@@ -84,58 +84,57 @@ Then in your code:
     print $speller->check( $word )
           ? "$word found\n"
           : "$word not found!\n";
-    
-    
 
-    
 
 
 =head1 DESCRIPTION
 
-This module provides a Perl interface to the GNU Aspell library.
-The GNU Aspell library provides access to system spelling libraries, including a
-spell checker.
-This module is to meet the need of looking up many
-words, one at a time, in a single session.
+This module provides a Perl interface to the GNU Aspell library.  This module
+is to meet the need of looking up many words, one at a time, in a single
+session, such as spell-checking a document in memory.
 
-This is a Perl xs interface which should provide good performance compared
-to forking the aspell program for every word.
-
-For example, a tiny run of about 400 word lookups resulted in:
-
-    aspell-fast: 18.44 seconds
-    pspell-fast:  0.63 seconds
-
-Where aspell-fast was forking (about 4 words per fork) and pspell-fast was using this
-module[1] ("fast" refers to the spelling mode used).
 
 The GNU C interface is described at:
 
-  http://savannah.gnu.org/download/aspell/manual/user/6_Writing.html
+    http://aspell.net/man-html/Through-the-C-API.html#Through-the-C-API
 
-It's worth looking over the way config and speller (manager) objects are created when using
-the Aspell C API as some of that is hidden in the Text::Aspell module.  In this discussion
-the term "speller object" means the internal Aspell object, not the value returned from
-Text::Aspell->new.
+It's worth looking over the way config and speller (manager) objects are
+created when using the Aspell C API as some of that is hidden in the
+Text::Aspell module.
 
-For example, with Text::Aspell you do not have to explicitly create a speller object.
-The speller (manager) object is created automatically the first time you call suggest() or 
-check().
+For example, with Text::Aspell you do not have to explicitly create a speller
+object.  The speller (manager) object is created automatically the first time
+you call suggest() or check().
 
-Note also that once the speller object is created some (all?) config options cannot be 
-changed.  For example, setting configuration options such as "lang" are what determine what
-dictionary Aspell will use.  Once the speller object is created that dictionary will be 
-used.  I.e. setting "lang" after the speller object is created will have no effect.
+Note also that once the speller object is created some (all?) config options
+cannot be changed.  For example, setting configuration options such as "lang"
+are what determine what dictionary Aspell will use.  Once the speller object is
+created that dictionary will be used.  I.e. setting "lang" after the speller
+object is created will have no effect.
 
-
-[1] Actually, running Text::Pspell which was the predecessor to this module.
 
 =head1 DEPENDENCIES
 
-You must have installed GNU Aspell version 0.50.1 or higher on your system.
-Download from:
+You MUST have installed GNU Aspell library version 0.50.1 or higher on your
+system before installing this Text::Aspell Perl module.  If installing Aspell
+using your operating system's package management system, you may need to
+install the Aspell development package (for example, on Debian libaspell-dev).
 
-    Aspell: http://aspell.net
+Aspell can source can be downloaded from:
+
+    http://aspell.net
+
+
+There have been a number of bug reports because people failed to install aspell
+before installing this module.  This is an interface to the aspell library
+installed on your system, not a replacement for aspell.
+
+You must also have the English dictionary installed when running the module's
+test suite.
+
+Also, please see the README and Changes files.  README may have specific
+information about your platform.
+
 
 
 =head1 METHODS
@@ -203,7 +202,7 @@ and the values is a hash with keys of:
 
 Prints the current configuration to STDOUT.  Useful for debugging.
 Note that this will return different results depending on if it's called before or after
-$speller->create_speller is called.  
+$speller->create_speller is called.
 
 =item $speller->errstr;
 
@@ -261,6 +260,8 @@ This method can be used to instruct the speller which word you used as a replace
 for a misspelled word.  This allows the speller to offer up the replacement next time
 the word is misspelled.  See section 6.3 of the GNU Aspell documentation for a better description.
 
+(July 2005 note: best to ignore any return value for now)
+
 =item $speller->save_all_word_lists;
 
 Writes any pending word lists to disk.
@@ -282,7 +283,7 @@ select a dictionary, and code is the language/region code only.
 
 =item $array_ref = $speller->$speller->dictionary_info;
 
-Like the C<list_dictionaries()> method, this method returns an array of 
+Like the C<list_dictionaries()> method, this method returns an array of
 hash references.  For example, an entry for a dictionary might have the
 following hash reference:
 
@@ -302,11 +303,11 @@ Not all hash keys will be available for every dictionary
 
 =head1 Upgrading from Text::Pspell
 
-Text::Aspell works with GNU Aspell and is a replacement for the 
+Text::Aspell works with GNU Aspell and is a replacement for the
 module Text::Pspell.  Text::Pspell is no longer supported.
 
 Upgrading should be a simple process.  Only one method name has changed:
-C<create_manager> is now called C<create_speller>. 
+C<create_manager> is now called C<create_speller>.
 Code designed to use the old Text::Pspell module may not even call the
 C<create_manager> method so this may not be an issue.
 
@@ -316,10 +317,10 @@ Diffs for code that uses Text::Pspell might look like:
 
     -    use Text::Pspell;
     +    use Text::Aspell;
-     
+
     -    $speller = Text::Pspell->new;
     +    $speller = Text::Aspell->new;
-     
+
     -    $speller->create_manager || die "Failed to create speller: " . $speller->errstr;
     +    $speller->create_speller || die "Failed to create speller: " . $speller->errstr;
 
@@ -327,7 +328,7 @@ If you used a custom dictionary installed in non-standard location and indexed t
 Aspell/Pspell .pwli files you will need to change how you access your dictionary (e.g.
 by setting the "master" configuration setting with the path to the dictionary).
 See the GNU Aspell documentation for details.
- 
+
 
 =head1 BUGS
 

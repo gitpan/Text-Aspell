@@ -17,7 +17,7 @@ typedef struct {
 } Aspell_object;
 
 
-int _create_speller(Aspell_object *self)
+static int _create_speller(Aspell_object *self)
 {
     AspellCanHaveError *ret;
 
@@ -26,7 +26,7 @@ int _create_speller(Aspell_object *self)
 
     if ( (self->errnum = aspell_error_number(ret) ) )
     {
-        strncpy(self->lastError, (char*) aspell_error_message(ret), MAX_ERRSTR_LEN);
+        strncpy(self->lastError, aspell_error_message(ret), MAX_ERRSTR_LEN);
         return 0;
     }
 
@@ -39,7 +39,7 @@ int _create_speller(Aspell_object *self)
     self->speller = to_aspell_speller(ret);
     self->config  = aspell_speller_config(self->speller);
     return 1;
-}        
+}
 
 
 
@@ -61,12 +61,14 @@ new(CLASS)
         }
         memset( RETVAL, 0, sizeof( Aspell_object ) );
 
-        // create the configuration
+        /*  create the configuration */
         RETVAL->config = new_aspell_config();
 
-        // Set initial default
-        // aspell_config_replace(RETVAL->config, "language-tag", "en");  // default language is 'EN'
-    
+        /* Set initial default */
+        /* 
+         * aspell_config_replace(RETVAL->config, "language-tag", "en");
+         * default language is 'EN' */
+
     OUTPUT:
         RETVAL
 
@@ -76,7 +78,7 @@ DESTROY(self)
     Aspell_object *self
     CODE:
         if ( self->speller )
-            delete_aspell_speller(self->speller); 
+            delete_aspell_speller(self->speller);
 
         safefree( (char*)self );
 
@@ -88,7 +90,7 @@ create_speller(self)
         if ( !_create_speller(self) )
             XSRETURN_UNDEF;
 
-        RETVAL = 1;            
+        RETVAL = 1;
 
     OUTPUT:
         RETVAL
@@ -106,7 +108,7 @@ print_config(self)
             PerlIO_printf(PerlIO_stdout(),"%20s:  %s\n", entry->name, aspell_config_retrieve(self->config, entry->name) );
 
         delete_aspell_key_info_enumeration(key_list);
-            
+
 
         RETVAL = 1;
 
@@ -124,16 +126,16 @@ set_option(self, tag, val )
 
         aspell_config_replace(self->config, tag, val );
 
-        if ( (self->errnum = aspell_config_error_number( (const AspellConfig *)self->config) ) )
+        if ( (self->errnum = aspell_config_error_number( self->config) ) )
         {
-            strcpy(self->lastError, aspell_config_error_message( (const AspellConfig *)self->config ) );
+            strcpy(self->lastError, aspell_config_error_message( self->config ) );
             XSRETURN_UNDEF;
         }
 
         RETVAL = 1;
     OUTPUT:
         RETVAL
-    
+
 
 
 int
@@ -144,10 +146,10 @@ remove_option(self, tag )
         self->lastError[0] = '\0';
 
         aspell_config_remove(self->config, tag );
-        
-        if ( (self->errnum = aspell_config_error_number( (const AspellConfig *)self->config) ) )
+
+        if ( (self->errnum = aspell_config_error_number( self->config) ) )
         {
-            strcpy(self->lastError, aspell_config_error_message( (const AspellConfig *)self->config ) );
+            strcpy(self->lastError, aspell_config_error_message( self->config ) );
             XSRETURN_UNDEF;
         }
 
@@ -164,25 +166,25 @@ get_option(self, val)
 
         RETVAL = (char *)aspell_config_retrieve(self->config, val);
 
-        if ( (self->errnum = aspell_config_error_number( (const AspellConfig *)self->config) ) )
+        if ( (self->errnum = aspell_config_error_number( self->config) ) )
         {
-            strcpy(self->lastError, aspell_config_error_message( (const AspellConfig *)self->config ) );
+            strcpy(self->lastError, aspell_config_error_message( self->config ) );
             XSRETURN_UNDEF;
         }
 
     OUTPUT:
         RETVAL
 
-int
+void
 get_option_as_list(self, val)
     Aspell_object *self
     char * val
 
     PREINIT:
-        AspellStringList * lst = new_aspell_string_list();
-	    AspellMutableContainer * lst0  = aspell_string_list_to_mutable_container(lst);
+        AspellStringList        * lst   = new_aspell_string_list();
+        AspellMutableContainer  * lst0  = aspell_string_list_to_mutable_container(lst);
         AspellStringEnumeration * els;
-        const char *option_value;
+        const char              *option_value;
 
     PPCODE:
         if (!self->config )
@@ -190,9 +192,9 @@ get_option_as_list(self, val)
 
         aspell_config_retrieve_list(self->config, val, lst0);
 
-        if ( (self->errnum = aspell_config_error_number( (const AspellConfig *)self->config) ) )
+        if ( (self->errnum = aspell_config_error_number( self->config) ) )
         {
-            strncpy(self->lastError, (char*) aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
+            strncpy(self->lastError, aspell_config_error_message( self->config ), MAX_ERRSTR_LEN);
             delete_aspell_string_list(lst);
             XSRETURN_UNDEF;
         }
@@ -201,7 +203,7 @@ get_option_as_list(self, val)
 
         while ( (option_value = aspell_string_enumeration_next(els)) != 0)
             PUSHs(sv_2mortal(newSVpv( option_value ,0 )));
-        
+
 
         delete_aspell_string_enumeration(els);
         delete_aspell_string_list(lst);
@@ -238,14 +240,14 @@ check(self,word)
         RETVAL = aspell_speller_check(self->speller, word, -1);
         if (RETVAL != 1 && RETVAL != 0)
         {
-            self->errnum = aspell_speller_error_number( (const AspellSpeller *)self->speller );
-            strncpy(self->lastError, (char*) aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
+            self->errnum = aspell_speller_error_number( self->speller );
+            strncpy(self->lastError, aspell_speller_error_message( self->speller ), MAX_ERRSTR_LEN);
             XSRETURN_UNDEF;
         }
     OUTPUT:
         RETVAL
-        
-int
+
+void
 suggest(self, word)
     Aspell_object *self
     char * word
@@ -257,25 +259,25 @@ suggest(self, word)
         self->lastError[0] = '\0';
         self->errnum = 0;
 
-        
+
         if (!self->speller && !_create_speller(self) )
             XSRETURN_UNDEF;
 
         wl = aspell_speller_suggest(self->speller, word, -1);
         if (!wl)
         {
-            self->errnum = aspell_speller_error_number( (const AspellSpeller *)self->speller );
-            strncpy(self->lastError, (char*) aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
+            self->errnum = aspell_speller_error_number( self->speller );
+            strncpy(self->lastError, aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
             XSRETURN_UNDEF;
         }
 
 
-  
+
         els = aspell_word_list_elements(wl);
 
 
         while ( (suggestion = aspell_string_enumeration_next(els)) )
-            XPUSHs(sv_2mortal(newSVpv( (char *)suggestion ,0 )));
+            XPUSHs(sv_2mortal(newSVpv( suggestion ,0 )));
 
         delete_aspell_string_enumeration(els);
 
@@ -287,7 +289,7 @@ add_to_personal(self,word)
     CODE:
         self->lastError[0] = '\0';
         self->errnum = 0;
-        
+
         if (!self->speller && !_create_speller(self) )
             XSRETURN_UNDEF;
 
@@ -295,8 +297,8 @@ add_to_personal(self,word)
         RETVAL = aspell_speller_add_to_personal(self->speller, word, -1);
         if ( !RETVAL )
         {
-            self->errnum = aspell_speller_error_number( (const AspellSpeller *)self->speller );
-            strncpy(self->lastError, (char*) aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
+            self->errnum = aspell_speller_error_number( self->speller );
+            strncpy(self->lastError, aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
             XSRETURN_UNDEF;
         }
     OUTPUT:
@@ -309,7 +311,7 @@ add_to_session(self,word)
     CODE:
         self->lastError[0] = '\0';
         self->errnum = 0;
-        
+
         if (!self->speller && !_create_speller(self) )
             XSRETURN_UNDEF;
 
@@ -317,8 +319,8 @@ add_to_session(self,word)
         RETVAL = aspell_speller_add_to_session(self->speller, word, -1);
         if ( !RETVAL )
         {
-            self->errnum = aspell_speller_error_number( (const AspellSpeller *)self->speller );
-            strncpy(self->lastError, (char*) aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
+            self->errnum = aspell_speller_error_number( self->speller );
+            strncpy(self->lastError, aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
             XSRETURN_UNDEF;
         }
     OUTPUT:
@@ -334,7 +336,7 @@ store_replacement(self,word,replacement)
     CODE:
         self->lastError[0] = '\0';
         self->errnum = 0;
-        
+
         if (!self->speller && !_create_speller(self) )
             XSRETURN_UNDEF;
 
@@ -342,8 +344,8 @@ store_replacement(self,word,replacement)
         RETVAL = aspell_speller_store_replacement(self->speller, word, -1, replacement, -1);
         if ( !RETVAL )
         {
-            self->errnum = aspell_speller_error_number( (const AspellSpeller *)self->speller );
-            strncpy(self->lastError, (char*) aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
+            self->errnum = aspell_speller_error_number( self->speller );
+            strncpy(self->lastError, aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
             XSRETURN_UNDEF;
         }
     OUTPUT:
@@ -355,7 +357,7 @@ save_all_word_lists(self)
     CODE:
         self->lastError[0] = '\0';
         self->errnum = 0;
-        
+
         if (!self->speller && !_create_speller(self) )
             XSRETURN_UNDEF;
 
@@ -363,20 +365,20 @@ save_all_word_lists(self)
         RETVAL = aspell_speller_save_all_word_lists(self->speller);
         if ( !RETVAL )
         {
-            self->errnum = aspell_speller_error_number( (const AspellSpeller *)self->speller );
-            strncpy(self->lastError, (char*) aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
+            self->errnum = aspell_speller_error_number( self->speller );
+            strncpy(self->lastError, aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
             XSRETURN_UNDEF;
         }
     OUTPUT:
         RETVAL
-        
+
 int
 clear_session(self)
     Aspell_object *self
     CODE:
         self->lastError[0] = '\0';
         self->errnum = 0;
-        
+
         if (!self->speller && !_create_speller(self) )
             XSRETURN_UNDEF;
 
@@ -384,15 +386,15 @@ clear_session(self)
         RETVAL = aspell_speller_clear_session(self->speller);
         if ( !RETVAL )
         {
-            self->errnum = aspell_speller_error_number( (const AspellSpeller *)self->speller );
-            strncpy(self->lastError, (char*) aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
+            self->errnum = aspell_speller_error_number( self->speller );
+            strncpy(self->lastError, aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
             XSRETURN_UNDEF;
         }
     OUTPUT:
         RETVAL
 
 
-int
+void
 list_dictionaries(self)
     Aspell_object *self
     PREINIT:
@@ -429,7 +431,7 @@ list_dictionaries(self)
         delete_aspell_dict_info_enumeration(dels);
 
 
-int
+void
 dictionary_info(self)
         Aspell_object *self;
     PREINIT:
@@ -467,7 +469,7 @@ dictionary_info(self)
             XPUSHs(sv_2mortal(newRV_noinc((SV*)dict_entry)));
 
         }
-        
+
         delete_aspell_dict_info_enumeration(dels);
 
 
@@ -499,7 +501,7 @@ fetch_option_keys(self)
 
             hv_store(option_hash, entry->name, strlen(entry->name), newRV_noinc((SV *)KeyInfo),0);
         }
-        
+
         delete_aspell_key_info_enumeration(key_list);
 
         RETVAL = newRV_noinc((SV *)option_hash);
