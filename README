@@ -4,9 +4,13 @@ DESCRIPTION
 
 Text::Aspell is an interface to the GNU Aspell library.  GNU Aspell is a Free
 and Open Source spell checker.  The Text::Aspell module is a thin XS wrapper
-around the Aspell C Library.  Hopefully this is obvious, but you MUST have the
-Aspell library installed on your system before installing this module.  You also
-MUST have the en_US dictionary installed for "make test" to pass.
+around the Aspell C Library.
+
+REQUIREMENTS
+
+Hopefully this is obvious, but you MUST have the Aspell library installed on
+your system before installing this module.  You also MUST have the en_US
+dictionary installed for "make test" to pass.
 
 For example, if you are running Debian you would have done this first:
 
@@ -15,13 +19,31 @@ For example, if you are running Debian you would have done this first:
 which would install the aspell binary and dictionary, plus also
 the aspell library and header file which are needed to link this module against.
 
+If you installed GNU Aspell from source then you should have the the aspell.h and
+aspell library on your system.
+
+Take a look at the bug reports for Aspell:
+
+    http://cpantesters.perl.org/show/Text-Aspell.html#Text-Aspell-0.05
+
+Note how many either say:
+
+    Aspell.xs:7: aspell.h: No such file or directory
+
+or:
+
+    #     Failed test (t/05-core.t at line 33)
+    #          got: 'en_GB'
+    #     expected: 'en_US'
+    # Really need the en_US dictionary installed!
+
+Makefile.PL does not do any checking of of Aspell before building.  I would welcome
+any help updating the build process to do more checking up front.
+
 
 
 See BUILD NOTES and CURRENT ISSUES below before reporting any bugs.
 
-
-This module is a replacement for the Text::Pspell module to work with
-the new GNU Aspell (the replacement for the previous version of Aspell/Pspell).
 
 This module has been built and passed all tests on the following platforms:
 
@@ -37,6 +59,16 @@ And on Wed Jul 27 10:36:12 PDT 2005:
 
     perl 5.8.7, Aspell 0.60.3, gcc 3.3.6 Debian Sid
     perl 5.8.7  Aspell 0.60.3, gcc 3.4.2 FreeBSD 5.4-STABLE i386
+
+
+And on Fri May 26 18:59:51 UTC 2006 with Text-Aspell-0.06
+
+    perl  5.8.8, Aspell 0.60.4, aspell6-en-6.0.0  Debian Sid gcc 4.0.3 (all from source)
+    perl  5.8.4, Aspell 0.60.4, aspell6-en-6.0-0, Debian GNU/Linux 3.1 gcc  3.3.5 (all from source)
+    perl  5.8.8, Aspell 0.60.4, FreeBSD 6.1-RELEASE #0, gcc 3.4.4 (Aspell from ports)
+
+
+
 
 
 Please read SUPPORT below if you have trouble building Text::Aspell.
@@ -229,6 +261,10 @@ why I don't know why.  The code (from what I can tell) looks like it should be
 returning an error value, but fails on some platforms.  Until I can get a
 better answer I'm going to assume Aspell is broken and ignore the return value
 in t/test.t.  So don't test the return value in your code, either.
+
+Update May 2006:  Changed from checking return values to calling aspell_*_error
+method to test for errors.
+
 
 Some users of OS X have reported the test failing after calling clear_session().
 The test is suppose to see if a word added to the session is removed after calling

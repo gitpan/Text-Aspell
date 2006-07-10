@@ -1,5 +1,19 @@
 Revision history for Perl extension Text::Aspell.
 
+0.06  Wed May 31 13:51:58 UTC 2006
+
+      - Replaced the PUSHs with XPUSHs as suggested by AWKAY in bug #15060
+
+      - Removed a comment that was left in the O_OBJECT typemap.
+        Alex Kapranoff reported that it was confusing xsubpp on some versions
+        of perl.
+
+      - Changed from testing return values to calling aspell_*_error.
+        In some cases the Aspell API was inconsistent with the code.
+        http://lists.gnu.org/archive/html/aspell-devel/2005-07/msg00028.html
+
+
+
 0.05  Wed Jul 27 10:34:55 PDT 2005
 
       - Removed a number of const * casts.  Also changed a few int returns to

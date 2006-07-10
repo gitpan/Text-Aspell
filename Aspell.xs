@@ -1,9 +1,6 @@
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
-
-/* $Id: Aspell.xs,v 1.5 2002/08/29 20:28:00 moseley Exp $ */
-
 #include <aspell.h>
 
 #define MAX_ERRSTR_LEN 1000
@@ -13,7 +10,7 @@ typedef struct {
     AspellSpeller       *speller;
     AspellConfig        *config;
     char                lastError[MAX_ERRSTR_LEN+1];
-    int                 errnum;
+    int                 errnum;  /* Deprecated  - only returns 0/1 */
 } Aspell_object;
 
 
@@ -55,6 +52,7 @@ new(CLASS)
     char *CLASS
     CODE:
         RETVAL = (Aspell_object*)safemalloc( sizeof( Aspell_object ) );
+
         if( RETVAL == NULL ){
             warn("unable to malloc Aspell_object");
             XSRETURN_UNDEF;
@@ -202,7 +200,7 @@ get_option_as_list(self, val)
         els = aspell_string_list_elements(lst);
 
         while ( (option_value = aspell_string_enumeration_next(els)) != 0)
-            PUSHs(sv_2mortal(newSVpv( option_value ,0 )));
+            XPUSHs(sv_2mortal(newSVpv( option_value ,0 )));
 
 
         delete_aspell_string_enumeration(els);
@@ -238,7 +236,8 @@ check(self,word)
             XSRETURN_UNDEF;
 
         RETVAL = aspell_speller_check(self->speller, word, -1);
-        if (RETVAL != 1 && RETVAL != 0)
+
+        if ( aspell_speller_error( self->speller ) )
         {
             self->errnum = aspell_speller_error_number( self->speller );
             strncpy(self->lastError, aspell_speller_error_message( self->speller ), MAX_ERRSTR_LEN);
@@ -264,6 +263,7 @@ suggest(self, word)
             XSRETURN_UNDEF;
 
         wl = aspell_speller_suggest(self->speller, word, -1);
+
         if (!wl)
         {
             self->errnum = aspell_speller_error_number( self->speller );
@@ -295,7 +295,8 @@ add_to_personal(self,word)
 
 
         RETVAL = aspell_speller_add_to_personal(self->speller, word, -1);
-        if ( !RETVAL )
+
+        if ( aspell_speller_error( self->speller ) )
         {
             self->errnum = aspell_speller_error_number( self->speller );
             strncpy(self->lastError, aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
@@ -317,7 +318,8 @@ add_to_session(self,word)
 
 
         RETVAL = aspell_speller_add_to_session(self->speller, word, -1);
-        if ( !RETVAL )
+
+        if ( aspell_speller_error( self->speller ) )
         {
             self->errnum = aspell_speller_error_number( self->speller );
             strncpy(self->lastError, aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
@@ -342,7 +344,8 @@ store_replacement(self,word,replacement)
 
 
         RETVAL = aspell_speller_store_replacement(self->speller, word, -1, replacement, -1);
-        if ( !RETVAL )
+
+        if ( aspell_speller_error( self->speller ) )
         {
             self->errnum = aspell_speller_error_number( self->speller );
             strncpy(self->lastError, aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
@@ -363,7 +366,8 @@ save_all_word_lists(self)
 
 
         RETVAL = aspell_speller_save_all_word_lists(self->speller);
-        if ( !RETVAL )
+
+        if ( aspell_speller_error( self->speller ) )
         {
             self->errnum = aspell_speller_error_number( self->speller );
             strncpy(self->lastError, aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);
@@ -384,7 +388,8 @@ clear_session(self)
 
 
         RETVAL = aspell_speller_clear_session(self->speller);
-        if ( !RETVAL )
+
+        if ( aspell_speller_error( self->speller ) )
         {
             self->errnum = aspell_speller_error_number( self->speller );
             strncpy(self->lastError, aspell_speller_error_message(self->speller), MAX_ERRSTR_LEN);

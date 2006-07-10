@@ -1,13 +1,11 @@
 package Text::Aspell;
 
-# $Id: Aspell.pm,v 1.7 2002/08/29 20:28:00 moseley Exp $
-
 require DynaLoader;
 
 use vars qw/  @ISA $VERSION /;
 @ISA = 'DynaLoader';
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 bootstrap Text::Aspell $VERSION;
 
@@ -215,6 +213,8 @@ Returns the error number from the last error.  Some errors may only set the
 error string ($speller->errstr) on errors, so it's best to check use the errstr method
 over this method.
 
+This method is deprecated.
+
 
 =item $found = $speller->check($word);
 
@@ -337,8 +337,8 @@ Probably.
 
 =head1 COPYRIGHT
 
-This library is free software; you can redistribute it
-and/or modify it under the same terms as Perl itself.
+This library is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
 
 
 =head1 AUTHOR

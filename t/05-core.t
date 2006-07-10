@@ -1,6 +1,5 @@
 #!perl -w
 
-# $Id: test.t,v 1.5 2002/08/29 20:28:01 moseley Exp $
 
 use strict;
 use Test::More;
@@ -41,7 +40,7 @@ ok( $speller->check('test'), 'Make sure word "test" is in dictionary' ) or
         ********************************************************************
         * Error: $err
         *
-        * Are you sure you have the Aspell English dictionary installed?
+        * Are you sure you have the Aspell en_US dictionary installed?
         *
         *********************************************************************
 
@@ -84,7 +83,7 @@ ok_to_fail( $speller->clear_session, 'Clear the aspell session' ) or
 
 
 @s_words = $speller->suggest($new_word);
-ok( !grep(/$new_word/, @s_words), "'$new_word' should not be a suggestion after clearing the session'")
+ok( !grep(/$new_word/, @s_words), "'$new_word' should not be a suggestion after clearing the session")
     or diag( "suggested words were [@s_words]" );
 
 
