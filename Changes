@@ -1,5 +1,12 @@
 Revision history for Perl extension Text::Aspell.
 
+0.07  Tue Apr  3 20:18:11 UTC 2007
+
+      - Added patch provided by Peter Karman:
+      "Here's a patch to skip that funny test in 05-core.t if the sug-split-char
+       feature is not present."
+
+
 0.06  Wed May 31 13:51:58 UTC 2006
 
       - Replaced the PUSHs with XPUSHs as suggested by AWKAY in bug #15060

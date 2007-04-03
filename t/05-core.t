@@ -98,8 +98,13 @@ print Dumper \@dicts;
 
 
 my @list = $speller->get_option_as_list('sug-split-char');
-cmp_ok( scalar @list, '>', 1, 'Found more than one list item for "sug-split-char"') or
-    diag('Maybe option "sug-split-char" not in your version of Aspell or modified by config. ' . $speller->errstr);
+
+SKIP: {
+    skip "option 'sug-split-char' not in your version of Aspell", 1 if $speller->errstr =~ m/is unknown/;
+
+    cmp_ok( scalar @list, '>', 1, 'Found more than one list item for "sug-split-char"') or
+     diag('Maybe option "sug-split-char" not in your version of Aspell or modified by config. ' . $speller->errstr);
+}
 
 
 # Display option keys
