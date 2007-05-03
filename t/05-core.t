@@ -5,7 +5,7 @@ use strict;
 use Test::More;
 use Text::Aspell;
 
-plan tests => 17;
+plan tests => 18;
 BEGIN { use_ok( 'Text::Aspell' ); }
 
 # Always passes, but returns true or false for so can show diag
@@ -26,7 +26,8 @@ ok( $speller->set_option('sug-mode','fast'), 'Set option sug-mode to "fast"' ) o
 
 #print defined $speller->create_speller ? "ok 4\n" : "not ok 4 " . $speller->errstr . "\n";
 
-
+ok( $speller->set_option( 'lang', 'en_US' ), 'Set language to en_US' ) or
+    diag( "Error: " . $speller->errstr );
 
 my $language = $speller->get_option('lang');
 is ( $language, 'en_US', "check that 'lang' option is en_US" ) or
