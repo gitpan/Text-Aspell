@@ -2,10 +2,9 @@
 
 
 use strict;
-use Test::More;
+use Test::More tests => 19;
 use Text::Aspell;
 
-plan tests => 18;
 BEGIN { use_ok( 'Text::Aspell' ); }
 
 # Always passes, but returns true or false for so can show diag

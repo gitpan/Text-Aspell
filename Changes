@@ -1,4 +1,8 @@
 Revision history for Perl extension Text::Aspell.
+
+0.09  Fri Sep 21 00:02:55 UTC 2007
+      - Updated test due to changes in Test::More v0.71
+
 0.08  Thu May  3 04:59:31 UTC 2007
       - Added explicit set_lang for en_US
       - TODO fix Makefile.PL to make sure aspell installed
